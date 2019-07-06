@@ -1,0 +1,27 @@
+{
+  "name": "json-decoder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/venil7/json-decoder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/venil7/json-decoder/issues"
+  },
+  "homepage": "https://github.com/venil7/json-decoder#readme",
+  "devDependencies": {
+    "rollup": "^1.16.6",
+    "rollup-plugin-typescript": "^1.0.1",
+    "tslib": "^1.10.0",
+    "typescript": "^3.5.2"
+  }
+}
