@@ -1,6 +1,6 @@
 {
   "name": "json-decoder",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,12 @@
     "type": "git",
     "url": "git+https://github.com/venil7/json-decoder.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "json",
+    "decoder",
+    "elm"
+  ],
+  "author": "Art Deineka, @darkest_ruby",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/venil7/json-decoder/issues"
