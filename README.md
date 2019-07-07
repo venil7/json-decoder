@@ -68,7 +68,7 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
   let petDecoder = objectDecoder<Person>({
     name: stringDecoder,
-    type: stringDecoder, //<-- error: field type id not defined in Pet
+    type: stringDecoder, //<-- error: field type is not defined in Pet
   });
   ```
 
@@ -92,9 +92,34 @@ Below is a list of basic decoders supplied with `json-decoder`:
   let result: Result<"cat"|"dog"> = petDecoder.decode("giraffe"); //Err("none of decoders matched");
   ```
 
+- `allOfDecoders(...decoders: Decoder<T1|T2...Tn>[]): Decoder<Tn>` - takes a number decoders as parameter and tries to decode a value with each in sequence, all decoders have to succeed. If at leat one defocer fails - returns `Err`.
+
+  ```
+  let catDecoder = exactDecoder("cat");
+  let result: Result<"cat"> = allOfDecoders(stringSecoder, catDecoder); //Ok("cat")
+  ```
+
 ## API
 
-## Monadic result and pattern matching
+Each decoder has the following methods:
+
+- `decode(json:unknown): Result<T>` - attempts to decode a value of `unknown` type. Returns `Ok<T>` if succesful, `Err<T>` otherwise.
+- `decodeAsync(json:unknown): Promise<T>` - Returns a promise that attempts to decode a value of `unknown` type. Resolves with `T` if succesful, rejects `Error{message:string}` otherwise.
+  A typical usage of this would be in an `async` function context:
+
+  ```
+  const getPet = async (): Promise<Pet> => {
+    const result = await fetch("http://some.pet.api/cat/1");
+    const pet:Pet = await petDecoder.decodeAsync(await result.json());
+    return pet;
+  };
+  ```
+
+- `map()`
+
+### Custome decoder
+
+## Result and pattern matching
 
 ## Friendly errors
 
