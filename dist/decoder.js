@@ -2,7 +2,49 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-// import { Maybe, some, none } from "./maybe";
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+
+function __values(o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+}
+
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
+
 var OK = "OK";
 var ERR = "ERR";
 var ok = function (value) { return ({
@@ -68,19 +110,29 @@ var undefinedDecoder = decoder(function (a) {
 });
 var arrayDecoder = function (itemDecoder) {
     return decoder(function (a) {
+        var e_1, _a;
         if (Array.isArray(a)) {
             var res = [];
-            for (var _i = 0, _a = a.entries(); _i < _a.length; _i++) {
-                var _b = _a[_i], index = _b[0], item = _b[1];
-                var itemResult = itemDecoder.decode(item);
-                switch (itemResult.type) {
-                    case OK: {
-                        res.push(itemResult.value);
-                        continue;
+            try {
+                for (var _b = __values(a.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
+                    var _d = __read(_c.value, 2), index = _d[0], item = _d[1];
+                    var itemResult = itemDecoder.decode(item);
+                    switch (itemResult.type) {
+                        case OK: {
+                            res.push(itemResult.value);
+                            continue;
+                        }
+                        case ERR:
+                            return err("array item " + index + ": " + itemResult.message);
                     }
-                    case ERR:
-                        return err("array item " + index + ": " + itemResult.message);
                 }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
+                }
+                finally { if (e_1) throw e_1.error; }
             }
             return ok(res);
         }
@@ -94,15 +146,25 @@ var oneOfDecoders = function () {
         decoders[_i] = arguments[_i];
     }
     return decoder(function (a) {
-        for (var _i = 0, decoders_1 = decoders; _i < decoders_1.length; _i++) {
-            var decoderTry = decoders_1[_i];
-            var result = decoderTry.decode(a);
-            switch (result.type) {
-                case OK:
-                    return ok(result.value);
-                case ERR:
-                    continue;
+        var e_2, _a;
+        try {
+            for (var decoders_1 = __values(decoders), decoders_1_1 = decoders_1.next(); !decoders_1_1.done; decoders_1_1 = decoders_1.next()) {
+                var decoderTry = decoders_1_1.value;
+                var result = decoderTry.decode(a);
+                switch (result.type) {
+                    case OK:
+                        return ok(result.value);
+                    case ERR:
+                        continue;
+                }
             }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (decoders_1_1 && !decoders_1_1.done && (_a = decoders_1["return"])) _a.call(decoders_1);
+            }
+            finally { if (e_2) throw e_2.error; }
         }
         return err("one of: none of decoders match");
     });
@@ -123,27 +185,6 @@ var allOfDecoders = function () {
         }, ok(a));
     });
 };
-// export const maybeDecoder = <T>(itemDecoder: Decoder<T>): Decoder<Maybe<T>> =>
-//   decoder((a: unknown) => {
-//     const res = oneOfDecoders(
-//       nullDecoder,
-//       undefinedDecoder,
-//       itemDecoder
-//     ).decode(a);
-//     switch (res.type) {
-//       case OK: {
-//         switch (res.value) {
-//           case undefined:
-//           case null:
-//             return ok(none<T>());
-//           default:
-//             return ok(some(res.value));
-//         }
-//       }
-//       case ERR:
-//         return err(res.message);
-//     }
-//   });
 var exactDecoder = function (value) {
     return decoder(function (a) {
         return a === value ? ok(value) : err("not exactly " + value);
@@ -151,20 +192,30 @@ var exactDecoder = function (value) {
 };
 var objectDecoder = function (decoderMap) {
     return decoder(function (a) {
+        var e_3, _a;
         if (typeof a === "object") {
             var keys = Object.keys(decoderMap);
             var res = {};
-            for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-                var key = keys_1[_i];
-                var fieldResult = decoderMap[key].decode(a[key]);
-                switch (fieldResult.type) {
-                    case OK: {
-                        res[key] = fieldResult.value;
-                        continue;
+            try {
+                for (var keys_1 = __values(keys), keys_1_1 = keys_1.next(); !keys_1_1.done; keys_1_1 = keys_1.next()) {
+                    var key = keys_1_1.value;
+                    var fieldResult = decoderMap[key].decode(a[key]);
+                    switch (fieldResult.type) {
+                        case OK: {
+                            res[key] = fieldResult.value;
+                            continue;
+                        }
+                        case ERR:
+                            return err(key + ": " + fieldResult.message);
                     }
-                    case ERR:
-                        return err(key + ": " + fieldResult.message);
                 }
+            }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            finally {
+                try {
+                    if (keys_1_1 && !keys_1_1.done && (_a = keys_1["return"])) _a.call(keys_1);
+                }
+                finally { if (e_3) throw e_3.error; }
             }
             return ok(res);
         }
