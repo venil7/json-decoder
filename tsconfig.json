@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "downlevelIteration": true,
+    "noImplicitAny": true,
+    "removeComments": true,
+  }
+}
