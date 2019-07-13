@@ -1,8 +1,8 @@
 {
   "name": "json-decoder",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
-  "main": "index.js",
+  "main": "dist/decoder.js",
   "scripts": {
     "test": "jest",
     "build": "rollup -c"
