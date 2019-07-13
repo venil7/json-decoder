@@ -1,10 +1,10 @@
 import ts from "rollup-plugin-typescript";
 
 export default {
-  input: "src/index.ts",
+  input: "src/decoder.ts",
   output: {
     format: "cjs",
-    file: "build/bundle.js",
+    file: "dist/decoder.js",
     sourcemap: true
   },
   plugins: [ts()]
