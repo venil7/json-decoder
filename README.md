@@ -104,7 +104,7 @@ Below is a list of basic decoders supplied with `json-decoder`:
 Each decoder has the following methods:
 
 - `decode(json:unknown): Result<T>` - attempts to decode a value of `unknown` type. Returns `Ok<T>` if succesful, `Err<T>` otherwise.
-- `decodeAsync(json:unknown): Promise<T>` - Returns a promise that attempts to decode a value of `unknown` type. Resolves with `T` if succesful, rejects `Error{message:string}` otherwise.
+- `decodeAsync(json:unknown): Promise<T>` - Returns a `Promise<T>` that attempts to decode a value of `unknown` type. Resolves with `T` if succesful, rejects `Error{message:string}` otherwise.
   A typical usage of this would be in an `async` function context:
 
   ```
@@ -115,11 +115,35 @@ Each decoder has the following methods:
   };
   ```
 
-- `map()`
+- `map(func: (t:T) => T2) : Decoder<T2>` - each decoder is a [functor](https://wiki.haskell.org/Functor). `Map` allows you to apply a function to an underlying deocoder value, provided that decoding succeeded. Map accepts a function of type `(t:T) -> T2`, where `T` is a type of decoder (and underlying value), and `T2` is a type of resulting decoder. 
 
-### Custome decoder
+- `then(bindFunc: (t:T) => Decoder<T2>): Decoder<T2>` - allows for [monading](https://wiki.haskell.org/Monad) chaining of decoders. Takes a function, that returns a `Decoder<T2>`, and returns a `Decoder<T2>`
+
+### Custom decoder
 
 ## Result and pattern matching
+
+Decoding can either succeed or fail, to denote that `json-decoder` has [ADT](https://en.wikipedia.org/wiki/Algebraic_data_type) type `Result<T>`, which can take two forms:
+ - `Ok<T>` - carries a succesfull decoding result of type `T`, use `.value` to access value
+ - `Err<T>` - carries an unsuccesfull decodign result of type `T`, use `.message` to access error message
+
+ `Result` also has functorial `map` function that allows to apply a function to a value, provided that it exists
+
+ ```
+ let r:Result<string> = Ok("cat").map(s => s.toUpperCase); //Ok("CAT")
+ let e:Result<string> = Err("some error").map(s => s.toUpperCase); //Err("some error")
+ ```
+
+ It is possible to pattern-match (using poor man's pattern matching provided by TypeScript) to determite the type of `Result`
+
+ ```
+ // assuming some result:Result<Person>
+ 
+ switch (result.type) {
+   case OK: result.value; // Person
+   case Err: result.message; // message string
+ }
+ ```
 
 ## Friendly errors
 
