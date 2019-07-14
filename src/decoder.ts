@@ -1,3 +1,5 @@
+import { validate } from "@babel/types";
+
 // import { Maybe, some, none } from "./maybe";
 
 export const OK = "OK";
@@ -30,6 +32,7 @@ export type Decoder<T> = {
   decodeAsync: (a: unknown) => Promise<T>;
   map: <T2>(func: (t: T) => T2) => Decoder<T2>;
   then: <T2>(nextDecoder: Decoder<T2>) => Decoder<T2>;
+  validate: (func: (t: T) => boolean, errMessage?: string) => Decoder<T>;
 };
 
 export const decoder = <T>(decode: (a: unknown) => Result<T>): Decoder<T> => ({
@@ -44,18 +47,34 @@ export const decoder = <T>(decode: (a: unknown) => Result<T>): Decoder<T> => ({
           return reject(new Error(res.message));
       }
     }),
-  map: <T2>(func: (t: T) => T2) =>
+  map: <T2>(func: (t: T) => T2): Decoder<T2> =>
     decoder<T2>((b: unknown) => {
       const res = decode(b);
       switch (res.type) {
-        case OK:
-          return ok(func(res.value));
+        case OK: {
+          try {
+            return ok(func(res.value));
+          } catch (error) {
+            return err(error.message);
+          }
+        }
         case ERR:
           return (res as unknown) as Err<T2>;
       }
     }),
-  then: <T2>(nextDecoder: Decoder<T2>) =>
-    allOfDecoders(decoder(decode), nextDecoder)
+  then: <T2>(nextDecoder: Decoder<T2>): Decoder<T2> =>
+    allOfDecoders(decoder(decode), nextDecoder),
+  validate: (
+    func: (t: T) => boolean,
+    errMessage: string = "validation failed"
+  ): Decoder<T> =>
+    decoder(decode).map<T>((t: T) => {
+      if (func(t)) {
+        return t;
+      } else {
+        throw new Error(errMessage);
+      }
+    })
 });
 
 type ArrayDecoder<T> = Decoder<T[]>;

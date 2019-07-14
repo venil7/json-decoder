@@ -8,6 +8,9 @@ import {
   ERR,
   objectDecoder,
   allOfDecoders,
+  Err,
+  OK,
+  Ok
 } from "../decoder";
 
 test("string decoder", async () => {
@@ -59,9 +62,37 @@ test("all of decoders", async () => {
   const val = "12.0";
   const result = await allOfDecoders(
     stringDecoder.map(parseFloat),
-    numberDecoder.map((x) => x * 2)
+    numberDecoder.map(x => x * 2)
   ).decodeAsync(val);
   expect(result).toBe(24.0);
+});
+
+test("failing map returns Err", async () => {
+  const val = "cat";
+  const decoder = stringDecoder.map(x => {
+    throw new Error("mapping fault");
+    return "hello"; // this is ti satisfy type inference
+  });
+  const result = decoder.decode(val);
+  expect(result.type).toBe(ERR);
+  expect((result as Err<string>).message).toBe("mapping fault");
+});
+
+test("failing validation returns Err", async () => {
+  const val = "dog";
+  const validate = (s: string) => s === "cat";
+  const decoder = stringDecoder.validate(validate, "not a cat");
+  const result = decoder.decode(val);
+  expect(result.type).toBe(ERR);
+  expect((result as Err<string>).message).toBe("not a cat");
+});
+
+test("succesfull validation returns Ok", async () => {
+  const val = 123;
+  const isInteger = (n: number) => Math.floor(n) === n;
+  const decoder = numberDecoder.validate(isInteger, "not an interegr");
+  const result = await decoder.decodeAsync(val);
+  expect(result).toBe(val);
 });
 
 // test("maybe decoder success", async () => {
@@ -78,13 +109,29 @@ test("all of decoders", async () => {
 //   expect(result.type).toBe(ERR);
 // });
 
-test("type decoder failure", async () => {
+test("object decoder", async () => {
   type Person = { name: string; age: number };
   const val: unknown = { name: "peter", age: 26 };
   const testDecoder = objectDecoder<Person>({
     name: stringDecoder,
-    age: numberDecoder,
+    age: numberDecoder
   });
   const result = await testDecoder.decodeAsync(val);
-  expect(result).toStrictEqual(val as {});
+  expect(result).toStrictEqual(val as Person);
+});
+
+test("mapping Ok result", async () => {
+  const val: string = "cat";
+  const result_: Result<string> = stringDecoder.decode(val);
+  const result = result_.map(x => x.toUpperCase());
+  expect(result.type).toBe(OK);
+  expect((result as Ok<string>).value).toBe("CAT");
+});
+
+test("mapping Err result", async () => {
+  const val = 123;
+  const result_ = stringDecoder.decode(val);
+  const result = result_.map(x => x.toUpperCase());
+  expect(result.type).toBe(ERR);
+  expect((result as Err<string>).message).toBe("expected string, got number");
 });

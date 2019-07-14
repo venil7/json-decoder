@@ -115,7 +115,7 @@ Each decoder has the following methods:
   };
   ```
 
-- `map(func: (t:T) => T2) : Decoder<T2>` - each decoder is a [functor](https://wiki.haskell.org/Functor). `Map` allows you to apply a function to an underlying deocoder value, provided that decoding succeeded. Map accepts a function of type `(t:T) -> T2`, where `T` is a type of decoder (and underlying value), and `T2` is a type of resulting decoder. 
+- `map(func: (t:T) => T2) : Decoder<T2>` - each decoder is a [functor](https://wiki.haskell.org/Functor). `Map` allows you to apply a function to an underlying deocoder value, provided that decoding succeeded. Map accepts a function of type `(t:T) -> T2`, where `T` is a type of decoder (and underlying value), and `T2` is a type of resulting decoder.
 
 - `then(bindFunc: (t:T) => Decoder<T2>): Decoder<T2>` - allows for [monading](https://wiki.haskell.org/Monad) chaining of decoders. Takes a function, that returns a `Decoder<T2>`, and returns a `Decoder<T2>`
 
@@ -124,29 +124,50 @@ Each decoder has the following methods:
 ## Result and pattern matching
 
 Decoding can either succeed or fail, to denote that `json-decoder` has [ADT](https://en.wikipedia.org/wiki/Algebraic_data_type) type `Result<T>`, which can take two forms:
- - `Ok<T>` - carries a succesfull decoding result of type `T`, use `.value` to access value
- - `Err<T>` - carries an unsuccesfull decodign result of type `T`, use `.message` to access error message
 
- `Result` also has functorial `map` function that allows to apply a function to a value, provided that it exists
+- `Ok<T>` - carries a succesfull decoding result of type `T`, use `.value` to access value
+- `Err<T>` - carries an unsuccesfull decodign result of type `T`, use `.message` to access error message
 
- ```
- let r:Result<string> = Ok("cat").map(s => s.toUpperCase); //Ok("CAT")
- let e:Result<string> = Err("some error").map(s => s.toUpperCase); //Err("some error")
- ```
+`Result` also has functorial `map` function that allows to apply a function to a value, provided that it exists
 
- It is possible to pattern-match (using poor man's pattern matching provided by TypeScript) to determite the type of `Result`
+```
+let r:Result<string> = Ok("cat").map(s => s.toUpperCase); //Ok("CAT")
+let e:Result<string> = Err("some error").map(s => s.toUpperCase); //Err("some error")
+```
 
- ```
- // assuming some result:Result<Person>
+It is possible to pattern-match (using poor man's pattern matching provided by TypeScript) to determite the type of `Result`
 
- switch (result.type) {
-   case OK: result.value; // Person
-   case Err: result.message; // message string
- }
- ```
+```
+// assuming some result:Result<Person>
+
+switch (result.type) {
+  case OK: result.value; // Person
+  case Err: result.message; // message string
+}
+```
 
 ## Friendly errors
 
 ## Mapping and type conversion
 
 ## Validation
+
+`JSON` only exposes an handful of types: `string`, `number`, `null`, `boolean`, `array` and `object`. There's no way t enforce special kind of validation on ny of above types using just `JSON`. `json-decoder` allows to validate values against a predicate.
+
+#### Example: `ingtererDecoder` - only decodes an integer and fails on a float value
+
+```
+let integerDecoder : Decoder<number> = numberDecoder.validate(n => Math.floor(n) === n, "not an integer");
+let integer = integerDecoder.decode(123); //Ok(123)
+let float = integerDecoder.decode(123.45); //Err("not an integer")
+
+```
+
+#### Example: `emailDecoder` - only decodes a string that matches email regex, fails otherwise
+
+```
+let emailDecoder : Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, "not an email");
+let integer = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
+let float = emailDecoder.decode("joe"); //Err("not an email")
+
+```
