@@ -1,7 +1,7 @@
 {
   "name": "json-decoder",
   "version": "1.0.1",
-  "description": "",
+  "description": "Lightweight, lightning-fast, type safe JSON decoder for TypeScript",
   "main": "dist/decoder.js",
   "typings": "dist/decoder.d.ts",
   "scripts": {
