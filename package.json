@@ -1,6 +1,6 @@
 {
   "name": "json-decoder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/decoder.js",
   "typings": "dist/decoder.d.ts",
@@ -13,6 +13,9 @@
     "type": "git",
     "url": "git+https://github.com/venil7/json-decoder.git"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "json",
     "decoder",
