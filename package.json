@@ -1,11 +1,13 @@
 {
   "name": "json-decoder",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/decoder.js",
+  "typings": "dist/decoder.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "rollup -c"
+    "build": "tsc",
+    "clean": "rm -rf ./dist"
   },
   "repository": {
     "type": "git",
@@ -25,8 +27,6 @@
   "devDependencies": {
     "@types/jest": "^24.0.15",
     "jest": "^24.8.0",
-    "rollup": "^1.16.6",
-    "rollup-plugin-typescript": "^1.0.1",
     "ts-jest": "^24.0.2",
     "tslib": "^1.10.0",
     "typescript": "^3.5.2"
