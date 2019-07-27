@@ -4,9 +4,18 @@
 
 [![Build Status](https://travis-ci.org/venil7/json-decoder.svg?branch=master)](https://travis-ci.org/venil7/json-decoder) [![TypeScript](https://badges.frapsoft.com/typescript/code/typescript.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
 
+Give us a 🌟on Github
+
 ## Compositional decoding
 
 The decoder comprises of small basic building blocks (listed below), that can be composed into JSON decoders of any complexity, including deeply nested structures, heterogenous arrays, etc. If a type can be expressed as `TypeScript` `interface` or `type` (including algebraic data types) - it can be safely decoded and type checked with `json-decoder`.
+
+## Install (npm or yarn)
+
+```
+  $> npm install json-decoder
+  $> yarn add json-decoder
+```
 
 ## Basic decoders
 
@@ -14,42 +23,42 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
 - `stringDecoder` - decodes a string:
 
-  ```
+  ```TypeScript
   let result: Result<string> = stringDecoder.decode("some string"); //Ok("some string");
   let result: Result<string> = stringDecoder.decode(123.45); //Err("string expected");
   ```
 
 - `numberDecoder` - decodes a number:
 
-  ```
+  ```TypeScript
   let result: Result<number> = numberDecoder.decode(123.45); //Ok(123.45);
   let result: Result<number> = numberDecoder.decode("some string"); //Err("number expected");
   ```
 
 - `boolDecoder` - decodes a boolean:
 
-  ```
+  ```TypeScript
   let result: Result<boolean> = boolDecoder.decode(true); //Ok(true);
   let result: Result<boolean> = boolDecoder.decode(null); //Err("bool expected");
   ```
 
 - `nullDecoder` - decodes a `null` value:
 
-  ```
+  ```TypeScript
   let result: Result<null> = nullDecoder.decode(null); //Ok(null);
   let result: Result<null> = boolDecoder.decode(false); //Err("null expected");
   ```
 
 - `undefinedDecoder` - decodes an `undefined` value:
 
-  ```
+  ```TypeScript
   let result: Result<null> = nullDecoder.decode(undefined); //Ok(undefined);
   let result: Result<null> = boolDecoder.decode(null); //Err("undefined expected");
   ```
 
 - `arrayDecoder<T>(decoder: Decoder<T>)` - decodes an array, requires one parameter of array item decoder:
 
-  ```
+  ```TypeScript
   let result: Result<number[]> = arrayDecoder.decode([1,2,3]); //Ok([1,2,3]);
   let result: Result<number[]> = arrayDecoder.decode("some string"); //Err("array expected");
   let result: Result<number[]> = arrayDecoder.decode([true, false, null]); //Err("array: number expected");
@@ -57,7 +66,7 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
 - `objectDecoder<T>(decoderMap: DecoderMap<T>)` - decodes an object, requires a decoder map parameter. Decoder map is a composition of decoders, one for each field of an object, that themselves can be object decoders if neccessary.
 
-  ```
+  ```TypeScript
   type Pet = {name: string, age: number};
   let petDecoder = objectDecoder<Person>({
     name: stringDecoder,
@@ -74,7 +83,7 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
 - `exactDecoder<T>(value: T)` - decodes a value that is passed as a parameter. Any other value will result in `Err`:
 
-  ```
+  ```TypeScript
   let catDecoder = exactDecoder("cat");
   let result: Result<"cat"> = catDecoder.decode("cat"); //Ok("cat");
   let result: Result<"cat"> = catDecoder.decode("dog"); //Err("cat expected");
@@ -82,7 +91,7 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
 - `oneOfDecoders<T1|T2...Tn>(...decoders: Decoder<T1|T2...Tn>[])` - takes a number decoders as parameter and tries to decode a value with each in sequence, returns as soon as one succeeds, errors otherwise. Useful for algebraic data types.
 
-  ```
+  ```TypeScript
   let catDecoder = exactDecoder("cat");
   let dogDecoder = exactDecoder("dog");
   let petDecoder = oneOfDecoders<"cat"|"dog"> = oneOfDecoders(catDecoder, dogDecoder);
@@ -94,7 +103,7 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
 - `allOfDecoders(...decoders: Decoder<T1|T2...Tn>[]): Decoder<Tn>` - takes a number decoders as parameter and tries to decode a value with each in sequence, all decoders have to succeed. If at leat one defocer fails - returns `Err`.
 
-  ```
+  ```TypeScript
   let catDecoder = exactDecoder("cat");
   let result: Result<"cat"> = allOfDecoders(stringSecoder, catDecoder); //Ok("cat")
   ```
@@ -107,7 +116,7 @@ Each decoder has the following methods:
 - `decodeAsync(json:unknown): Promise<T>` - Returns a `Promise<T>` that attempts to decode a value of `unknown` type. Resolves with `T` if succesful, rejects `Error{message:string}` otherwise.
   A typical usage of this would be in an `async` function context:
 
-  ```
+  ```TypeScript
   const getPet = async (): Promise<Pet> => {
     const result = await fetch("http://some.pet.api/cat/1");
     const pet:Pet = await petDecoder.decodeAsync(await result.json());
@@ -130,14 +139,14 @@ Decoding can either succeed or fail, to denote that `json-decoder` has [ADT](htt
 
 `Result` also has functorial `map` function that allows to apply a function to a value, provided that it exists
 
-```
+```TypeScript
 let r:Result<string> = Ok("cat").map(s => s.toUpperCase); //Ok("CAT")
 let e:Result<string> = Err("some error").map(s => s.toUpperCase); //Err("some error")
 ```
 
 It is possible to pattern-match (using poor man's pattern matching provided by TypeScript) to determite the type of `Result`
 
-```
+```TypeScript
 // assuming some result:Result<Person>
 
 switch (result.type) {
@@ -148,15 +157,19 @@ switch (result.type) {
 
 ## Friendly errors
 
+TBC
+
 ## Mapping and type conversion
+
+TBC
 
 ## Validation
 
 `JSON` only exposes an handful of types: `string`, `number`, `null`, `boolean`, `array` and `object`. There's no way t enforce special kind of validation on ny of above types using just `JSON`. `json-decoder` allows to validate values against a predicate.
 
-#### Example: `ingtererDecoder` - only decodes an integer and fails on a float value
+#### Example: `integerDecoder` - only decodes an integer and fails on a float value
 
-```
+```TypeScript
 let integerDecoder : Decoder<number> = numberDecoder.validate(n => Math.floor(n) === n, "not an integer");
 let integer = integerDecoder.decode(123); //Ok(123)
 let float = integerDecoder.decode(123.45); //Err("not an integer")
@@ -165,9 +178,13 @@ let float = integerDecoder.decode(123.45); //Err("not an integer")
 
 #### Example: `emailDecoder` - only decodes a string that matches email regex, fails otherwise
 
-```
+```TypeScript
 let emailDecoder : Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, "not an email");
 let integer = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
 let float = emailDecoder.decode("joe"); //Err("not an email")
 
 ```
+
+## Contributions are welcome
+
+Please raise an issue or create a PR
