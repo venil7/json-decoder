@@ -1,7 +1,3 @@
-import { validate } from "@babel/types";
-
-// import { Maybe, some, none } from "./maybe";
-
 export const OK = "OK";
 export const ERR = "ERR";
 export type Ok<T> = {
@@ -169,28 +165,6 @@ export const allOfDecoders = <
     );
   });
 
-// export const maybeDecoder = <T>(itemDecoder: Decoder<T>): Decoder<Maybe<T>> =>
-//   decoder((a: unknown) => {
-//     const res = oneOfDecoders(
-//       nullDecoder,
-//       undefinedDecoder,
-//       itemDecoder
-//     ).decode(a);
-//     switch (res.type) {
-//       case OK: {
-//         switch (res.value) {
-//           case undefined:
-//           case null:
-//             return ok(none<T>());
-//           default:
-//             return ok(some(res.value));
-//         }
-//       }
-//       case ERR:
-//         return err(res.message);
-//     }
-//   });
-
 export const exactDecoder = <T>(value: T): Decoder<T> =>
   decoder((a: unknown) =>
     a === value ? ok(value) : err(`not exactly ${value}`)
@@ -215,3 +189,27 @@ export const objectDecoder = <T>(decoderMap: DecoderMap<T>): Decoder<T> =>
       return ok(res as T);
     } else return err(`expected object, got ${typeof a}`);
   });
+
+export const anyDecoder: Decoder<unknown> = decoder((a: unknown) => ok(a));
+
+// export const maybeDecoder = <T>(itemDecoder: Decoder<T>): Decoder<Maybe<T>> =>
+//   decoder((a: unknown) => {
+//     const res = oneOfDecoders(
+//       nullDecoder,
+//       undefinedDecoder,
+//       itemDecoder
+//     ).decode(a);
+//     switch (res.type) {
+//       case OK: {
+//         switch (res.value) {
+//           case undefined:
+//           case null:
+//             return ok(none<T>());
+//           default:
+//             return ok(some(res.value));
+//         }
+//       }
+//       case ERR:
+//         return err(res.message);
+//     }
+//   });

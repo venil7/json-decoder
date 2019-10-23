@@ -8,6 +8,7 @@ import {
   ERR,
   objectDecoder,
   allOfDecoders,
+  anyDecoder,
   Err,
   OK,
   Ok
@@ -118,6 +119,12 @@ test("object decoder", async () => {
   });
   const result = await testDecoder.decodeAsync(val);
   expect(result).toStrictEqual(val as Person);
+});
+
+test("any decoder", async () => {
+  const val: unknown = { name: "peter", age: 26 };
+  const result = await anyDecoder.decodeAsync(val);
+  expect(result).toStrictEqual(val);
 });
 
 test("mapping Ok result", async () => {
