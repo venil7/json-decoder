@@ -192,6 +192,9 @@ export const objectDecoder = <T>(decoderMap: DecoderMap<T>): Decoder<T> =>
 
 export const anyDecoder: Decoder<unknown> = decoder((a: unknown) => ok(a));
 
+export const valueDecoder = <T>(value: T): Decoder<T> =>
+  decoder((a: unknown) => ok(value));
+
 // export const maybeDecoder = <T>(itemDecoder: Decoder<T>): Decoder<Maybe<T>> =>
 //   decoder((a: unknown) => {
 //     const res = oneOfDecoders(

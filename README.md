@@ -180,8 +180,8 @@ let float = integerDecoder.decode(123.45); //Err("not an integer")
 
 ```TypeScript
 let emailDecoder : Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, "not an email");
-let integer = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
-let float = emailDecoder.decode("joe"); //Err("not an email")
+let email = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
+let notEmail = emailDecoder.decode("joe"); //Err("not an email")
 
 ```
 

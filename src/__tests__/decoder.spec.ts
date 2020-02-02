@@ -11,7 +11,8 @@ import {
   anyDecoder,
   Err,
   OK,
-  Ok
+  Ok,
+  valueDecoder
 } from "../decoder";
 
 test("string decoder", async () => {
@@ -141,4 +142,11 @@ test("mapping Err result", async () => {
   const result = result_.map(x => x.toUpperCase());
   expect(result.type).toBe(ERR);
   expect((result as Err<string>).message).toBe("expected string, got number");
+});
+
+test("value decoder", async () => {
+  const val: unknown = { name: "mickey mouse", age: 26 };
+  const value = "donalnd duck";
+  const result = await valueDecoder(value).decodeAsync(val);
+  expect(result).toStrictEqual(value);
 });
