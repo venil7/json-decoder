@@ -5,7 +5,7 @@
   "main": "dist/decoder.js",
   "typings": "dist/decoder.d.ts",
   "scripts": {
-    "test": "jest",
+    "test": "jest --rootDir ./src/__tests__",
     "build": "tsc",
     "clean": "rm -rf ./dist"
   },

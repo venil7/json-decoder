@@ -31,6 +31,8 @@ export type Decoder<T> = {
   validate: (func: (t: T) => boolean, errMessage?: string) => Decoder<T>;
 };
 
+export type DecoderType<D> = D extends Decoder<infer T> ? T : never;
+
 export const decoder = <T>(decode: (a: unknown) => Result<T>): Decoder<T> => ({
   decode,
   decodeAsync: (a: unknown) =>
@@ -194,25 +196,3 @@ export const anyDecoder: Decoder<unknown> = decoder((a: unknown) => ok(a));
 
 export const valueDecoder = <T>(value: T): Decoder<T> =>
   decoder((a: unknown) => ok(value));
-
-// export const maybeDecoder = <T>(itemDecoder: Decoder<T>): Decoder<Maybe<T>> =>
-//   decoder((a: unknown) => {
-//     const res = oneOfDecoders(
-//       nullDecoder,
-//       undefinedDecoder,
-//       itemDecoder
-//     ).decode(a);
-//     switch (res.type) {
-//       case OK: {
-//         switch (res.value) {
-//           case undefined:
-//           case null:
-//             return ok(none<T>());
-//           default:
-//             return ok(some(res.value));
-//         }
-//       }
-//       case ERR:
-//         return err(res.message);
-//     }
-//   });
