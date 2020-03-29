@@ -32,6 +32,8 @@ export type Decoder<T> = {
 };
 
 export type DecoderType<D> = D extends Decoder<infer T> ? T : never;
+export type ArrayType<A> = A extends Array<infer T> ? T : never;
+export type DecoderArrayType<DD> = DecoderType<ArrayType<DD>>;
 
 export const decoder = <T>(decode: (a: unknown) => Result<T>): Decoder<T> => ({
   decode,
@@ -125,7 +127,9 @@ export const arrayDecoder = <T>(itemDecoder: Decoder<T>): ArrayDecoder<T> =>
     } else return err(`expected array, got ${typeof a}`);
   });
 
-export const oneOfDecoders = <T>(...decoders: Decoder<T>[]): Decoder<T> =>
+export const oneOfDecoders = <T = unknown>(
+  ...decoders: Decoder<T>[]
+): ArrayType<typeof decoders> =>
   decoder((a: unknown) => {
     for (const decoderTry of decoders) {
       const result = decoderTry.decode(a);
