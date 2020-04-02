@@ -52,8 +52,8 @@ Below is a list of basic decoders supplied with `json-decoder`:
 - `undefinedDecoder` - decodes an `undefined` value:
 
   ```TypeScript
-  const result: Result<null> = nullDecoder.decode(undefined); //Ok(undefined);
-  const result: Result<null> = boolDecoder.decode(null); //Err("undefined expected");
+  const result: Result<undefined> = undefinedDecoder.decode(undefined); //Ok(undefined);
+  const result: Result<undefined> = boolDecoder.decode(null); //Err("undefined expected");
   ```
 
 - `arrayDecoder<T>(decoder: Decoder<T>)` - decodes an array, requires one parameter of array item decoder:
@@ -189,7 +189,6 @@ TBC
 const integerDecoder: Decoder<number> = numberDecoder.validate(n => Math.floor(n) === n, "not an integer");
 const integer = integerDecoder.decode(123); //Ok(123)
 const float = integerDecoder.decode(123.45); //Err("not an integer")
-
 ```
 
 #### Example: `emailDecoder` - only decodes a string that matches email regex, fails otherwise
@@ -198,7 +197,16 @@ const float = integerDecoder.decode(123.45); //Err("not an integer")
 const emailDecoder: Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, "not an email");
 const email = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
 const notEmail = emailDecoder.decode("joe"); //Err("not an email")
+```
 
+Also `decoder.validate` can take function as a second parameter. It should have such type: `(value: T) => string`.
+
+#### Example: `emailDecoder` - only decodes a string that matches email regex, fails otherwise
+
+```TypeScript
+const emailDecoder: Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, (invalidEmail) => `${invalidEmail} not an email`);
+const email = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
+const notEmail = emailDecoder.decode("joe"); //Err("joe is not an email")
 ```
 
 ## Contributions are welcome

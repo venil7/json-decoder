@@ -1,23 +1,30 @@
 import {
-  stringDecoder,
-  numberDecoder,
-  boolDecoder,
-  nullDecoder,
-  oneOfDecoders,
-  Result,
-  ERR,
-  objectDecoder,
   allOfDecoders,
   anyDecoder,
+  boolDecoder,
   Err,
-  OK,
+  ERR,
+  nullDecoder,
+  numberDecoder,
+  objectDecoder,
   Ok,
+  OK,
+  oneOfDecoders,
+  Result,
+  stringDecoder,
+  symbolDecoder,
   valueDecoder
 } from "../decoder";
 
 test("string decoder", async () => {
   const val = "some text";
   const result = await stringDecoder.decodeAsync(val);
+  expect(result).toBe(val);
+});
+
+test("symbol decoder", async () => {
+  const val = Symbol.for("some text");
+  const result = await symbolDecoder.decodeAsync(val);
   expect(result).toBe(val);
 });
 
@@ -87,6 +94,18 @@ test("failing validation returns Err", async () => {
   const result = decoder.decode(val);
   expect(result.type).toBe(ERR);
   expect((result as Err<string>).message).toBe("not a cat");
+});
+
+test("failing validation with functional explanation returns Err", async () => {
+  const val = "dog";
+  const validate = (s: string) => s === "cat";
+  const decoder = stringDecoder.validate(
+    validate,
+    value => value + " not a cat"
+  );
+  const result = decoder.decode(val);
+  expect(result.type).toBe(ERR);
+  expect((result as Err<string>).message).toBe("dog not a cat");
 });
 
 test("succesfull validation returns Ok", async () => {
