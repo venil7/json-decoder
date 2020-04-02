@@ -69,14 +69,14 @@ Below is a list of basic decoders supplied with `json-decoder`:
 
   ```TypeScript
   type Pet = {name: string, age: number};
-  const petDecoder = objectDecoder<Person>({
+  const petDecoder = objectDecoder<Pet>({
     name: stringDecoder,
     age: numberDecoder,
   });
   const result: Result<Pet> = petDecoder.decode({name: "Varia", age: 0.5}); //Ok({name: "Varia", age: 0.5});
   const result: Result<Pet> = petDecoder.decode({name: "Varia", type: "cat"}); //Err("name: string expected");
 
-  const petDecoder = objectDecoder<Person>({
+  const petDecoder = objectDecoder<Pet>({
     name: stringDecoder,
     type: stringDecoder, //<-- error: field type is not defined in Pet
   });
@@ -135,14 +135,14 @@ Each decoder has the following methods:
   ```TypeScript
   const getPet = async (): Promise<Pet> => {
     const result = await fetch("http://some.pet.api/cat/1");
-    const pet:Pet = await petDecoder.decodeAsync(await result.json());
+    const pet: Pet = await petDecoder.decodeAsync(await result.json());
     return pet;
   };
   ```
 
-- `map(func: (t:T) => T2) : Decoder<T2>` - each decoder is a [functor](https://wiki.haskell.org/Functor). `Map` allows you to apply a function to an underlying deocoder value, provided that decoding succeeded. Map accepts a function of type `(t:T) -> T2`, where `T` is a type of decoder (and underlying value), and `T2` is a type of resulting decoder.
+- `map(func: (t: T) => T2): Decoder<T2>` - each decoder is a [functor](https://wiki.haskell.org/Functor). `Map` allows you to apply a function to an underlying decoder value, provided that decoding succeeded. Map accepts a function of type `(t: T) -> T2`, where `T` is a type of decoder (and underlying value), and `T2` is a type of resulting decoder.
 
-- `then(bindFunc: (t:T) => Decoder<T2>): Decoder<T2>` - allows for [monadic](https://wiki.haskell.org/Monad) chaining of decoders. Takes a function, that returns a `Decoder<T2>`, and returns a `Decoder<T2>`
+- `then(bindFunc: (t: T) => Decoder<T2>): Decoder<T2>` - allows for [monadic](https://wiki.haskell.org/Monad) chaining of decoders. Takes a function, that returns a `Decoder<T2>`, and returns a `Decoder<T2>`
 
 ### Custom decoder
 
@@ -151,13 +151,13 @@ Each decoder has the following methods:
 Decoding can either succeed or fail, to denote that `json-decoder` has [ADT](https://en.wikipedia.org/wiki/Algebraic_data_type) type `Result<T>`, which can take two forms:
 
 - `Ok<T>` - carries a succesfull decoding result of type `T`, use `.value` to access value
-- `Err<T>` - carries an unsuccesfull decodign result of type `T`, use `.message` to access error message
+- `Err<T>` - carries an unsuccesfull decoding result of type `T`, use `.message` to access error message
 
 `Result` also has functorial `map` function that allows to apply a function to a value, provided that it exists
 
 ```TypeScript
-const r:Result<string> = Ok("cat").map(s => s.toUpperCase); //Ok("CAT")
-const e:Result<string> = Err("some error").map(s => s.toUpperCase); //Err("some error")
+const r: Result<string> = Ok("cat").map(s => s.toUpperCase()); //Ok("CAT")
+const e: Result<string> = Err("some error").map(s => s.toUpperCase()); //Err("some error")
 ```
 
 It is possible to pattern-match (using poor man's pattern matching provided by TypeScript) to determite the type of `Result`
@@ -181,12 +181,12 @@ TBC
 
 ## Validation
 
-`JSON` only exposes an handful of types: `string`, `number`, `null`, `boolean`, `array` and `object`. There's no way t enforce special kind of validation on ny of above types using just `JSON`. `json-decoder` allows to validate values against a predicate.
+`JSON` only exposes an handful of types: `string`, `number`, `null`, `boolean`, `array` and `object`. There's no way to enforce special kind of validation on any of above types using just `JSON`. `json-decoder` allows to validate values against a predicate.
 
 #### Example: `integerDecoder` - only decodes an integer and fails on a float value
 
 ```TypeScript
-const integerDecoder : Decoder<number> = numberDecoder.validate(n => Math.floor(n) === n, "not an integer");
+const integerDecoder: Decoder<number> = numberDecoder.validate(n => Math.floor(n) === n, "not an integer");
 const integer = integerDecoder.decode(123); //Ok(123)
 const float = integerDecoder.decode(123.45); //Err("not an integer")
 
@@ -195,7 +195,7 @@ const float = integerDecoder.decode(123.45); //Err("not an integer")
 #### Example: `emailDecoder` - only decodes a string that matches email regex, fails otherwise
 
 ```TypeScript
-const emailDecoder : Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, "not an email");
+const emailDecoder: Decoder<number> = stringDecoder.validate(/^\S+@\S+$/.test, "not an email");
 const email = emailDecoder.decode("joe@example.com"); //Ok("joe@example.com")
 const notEmail = emailDecoder.decode("joe"); //Err("not an email")
 
