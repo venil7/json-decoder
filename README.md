@@ -122,6 +122,9 @@ const someDecoder = objectDecoder({
 });
 type Some = DecoderType<typeof someDecoder>; // {field1: string, field2: number, field3: number[] }
 const some: Some = await someDecoder.decodeAsync({...});
+
+const stringOrNumberDecoder = oneOfDecoders<string |number>(stringDecoder, numberDecoder);
+type StringOrNumber = DecoderType<typeof stringOrNumberDecoder>; //string | number
 ```
 
 ## API

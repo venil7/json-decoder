@@ -1,13 +1,14 @@
 {
   "name": "json-decoder",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Lightweight, lightning-fast, type safe JSON decoder for TypeScript",
   "main": "dist/decoder.js",
   "typings": "dist/decoder.d.ts",
   "scripts": {
     "test": "jest --rootDir ./src/__tests__",
     "build": "tsc",
-    "clean": "rm -rf ./dist"
+    "clean": "rm -rf ./dist",
+    "push": "npm run clean && npm run build && npm run test && npm publish"
   },
   "repository": {
     "type": "git",

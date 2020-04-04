@@ -53,7 +53,7 @@ test("map decoder", async () => {
 
 test("one of decoder", async () => {
   const val = "12";
-  const result = await oneOfDecoders<number | string>(
+  const result = await oneOfDecoders<string | number>(
     numberDecoder,
     stringDecoder
   ).decodeAsync(val);
@@ -97,21 +97,7 @@ test("succesfull validation returns Ok", async () => {
   expect(result).toBe(val);
 });
 
-// test("maybe decoder success", async () => {
-//   const val = "text";
-//   const maybeStringDecoder = maybeDecoder(stringDecoder);
-//   const result: Maybe<string> = await maybeStringDecoder.decodeAsync(val);
-//   expect(await result.valueAsync()).toBe(val);
-// });
-
-// test("maybe decoder failure", async () => {
-//   const val = "text";
-//   const maybeStringDecoder = maybeDecoder(numberDecoder);
-//   const result: Result<Maybe<number>> = maybeStringDecoder.decode(val);
-//   expect(result.type).toBe(ERR);
-// });
-
-test("object decoder", async () => {
+test("object decoder (success)", async () => {
   type Person = { name: string; age: number };
   const val: unknown = { name: "peter", age: 26 };
   const testDecoder = objectDecoder<Person>({
@@ -120,6 +106,16 @@ test("object decoder", async () => {
   });
   const result = await testDecoder.decodeAsync(val);
   expect(result).toStrictEqual(val as Person);
+});
+
+test("object decoder (null)", async () => {
+  const testDecoder = objectDecoder({
+    name: stringDecoder,
+    age: numberDecoder
+  });
+  const result = testDecoder.decode(null);
+  expect((result as Err<null>).message).toEqual("expected object, got null");
+  expect(result.type).toEqual(ERR);
 });
 
 test("any decoder", async () => {

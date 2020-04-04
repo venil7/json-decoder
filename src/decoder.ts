@@ -127,7 +127,7 @@ export const arrayDecoder = <T>(itemDecoder: Decoder<T>): ArrayDecoder<T> =>
     } else return err(`expected array, got ${typeof a}`);
   });
 
-export const oneOfDecoders = <T = unknown>(
+export const oneOfDecoders = <T>(
   ...decoders: Decoder<T>[]
 ): ArrayType<typeof decoders> =>
   decoder((a: unknown) => {
@@ -141,7 +141,7 @@ export const oneOfDecoders = <T = unknown>(
       }
     }
     return err(`one of: none of decoders match`);
-  });
+  }) as ArrayType<typeof decoders>;
 
 type LastElem<T extends number> = [-1, 0, 1, 2, 3, 4, 5][T];
 type LastElemType<T extends unknown[]> = T[LastElem<T["length"]>];
@@ -178,7 +178,7 @@ export const exactDecoder = <T>(value: T): Decoder<T> =>
 
 export const objectDecoder = <T>(decoderMap: DecoderMap<T>): Decoder<T> =>
   decoder((a: unknown) => {
-    if (typeof a === "object") {
+    if (typeof a === "object" && a !== null) {
       const keys = Object.keys(decoderMap) as (keyof T)[];
       const res: Partial<T> = {};
       for (const key of keys) {
@@ -193,7 +193,7 @@ export const objectDecoder = <T>(decoderMap: DecoderMap<T>): Decoder<T> =>
         }
       }
       return ok(res as T);
-    } else return err(`expected object, got ${typeof a}`);
+    } else return err(`expected object, got ${a ? typeof a : null}`);
   });
 
 export const anyDecoder: Decoder<unknown> = decoder((a: unknown) => ok(a));
