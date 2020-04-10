@@ -15,12 +15,18 @@ export type Result<T> = Ok<T> | Err<T>;
 export const ok = <T>(value: T): Result<T> => ({
   type: OK,
   value,
-  map: func => ok(func(value))
+  map: (func) => {
+    try {
+      return ok(func(value));
+    } catch (error) {
+      return err(error.message);
+    }
+  },
 });
 export const err = <T>(message: string): Result<T> => ({
   type: ERR,
   message,
-  map: func => err(message)
+  map: () => err(message),
 });
 
 export type Decoder<T> = {
@@ -28,7 +34,10 @@ export type Decoder<T> = {
   decodeAsync: (a: unknown) => Promise<T>;
   map: <T2>(func: (t: T) => T2) => Decoder<T2>;
   then: <T2>(nextDecoder: Decoder<T2>) => Decoder<T2>;
-  validate: (func: (t: T) => boolean, errMessage?: string) => Decoder<T>;
+  validate: (
+    func: (t: T) => boolean,
+    errMessage?: string | ((t: T) => string)
+  ) => Decoder<T>;
 };
 
 export type DecoderType<D> = D extends Decoder<infer T> ? T : never;
@@ -37,79 +46,65 @@ export type DecoderArrayType<DD> = DecoderType<ArrayType<DD>>;
 
 export const decoder = <T>(decode: (a: unknown) => Result<T>): Decoder<T> => ({
   decode,
-  decodeAsync: (a: unknown) =>
-    new Promise<T>((accept, reject) => {
+  decodeAsync: (a) =>
+    new Promise<T>((resolve, reject) => {
       const res = decode(a);
       switch (res.type) {
         case OK:
-          return accept(res.value);
+          return resolve(res.value);
         case ERR:
           return reject(new Error(res.message));
       }
     }),
   map: <T2>(func: (t: T) => T2): Decoder<T2> =>
-    decoder<T2>((b: unknown) => {
-      const res = decode(b);
-      switch (res.type) {
-        case OK: {
-          try {
-            return ok(func(res.value));
-          } catch (error) {
-            return err(error.message);
-          }
-        }
-        case ERR:
-          return (res as unknown) as Err<T2>;
-      }
-    }),
+    decoder<T2>((b: unknown) => decode(b).map(func)),
   then: <T2>(nextDecoder: Decoder<T2>): Decoder<T2> =>
     allOfDecoders(decoder(decode), nextDecoder),
-  validate: (
-    func: (t: T) => boolean,
-    errMessage: string = "validation failed"
-  ): Decoder<T> =>
+  validate: (func, errMessage = "validation failed"): Decoder<T> =>
     decoder(decode).map<T>((t: T) => {
       if (func(t)) {
         return t;
       } else {
-        throw new Error(errMessage);
+        throw new Error(
+          typeof errMessage === "function" ? errMessage(t) : errMessage
+        );
       }
-    })
+    }),
 });
 
 type ArrayDecoder<T> = Decoder<T[]>;
 type DecoderMap<T> = { [K in keyof T]: Decoder<T[K]> };
 
-export const stringDecoder: Decoder<string> = decoder((a: unknown) =>
+export const stringDecoder: Decoder<string> = decoder((a) =>
   typeof a === "string"
     ? ok<string>(a as string)
     : err(`expected string, got ${typeof a}`)
 );
 
-export const numberDecoder: Decoder<number> = decoder((a: unknown) =>
+export const numberDecoder: Decoder<number> = decoder((a) =>
   typeof a === "number"
     ? ok<number>(a as number)
     : err(`expected number, got ${typeof a}`)
 );
 
-export const boolDecoder: Decoder<boolean> = decoder((a: unknown) =>
+export const boolDecoder: Decoder<boolean> = decoder((a) =>
   typeof a === "boolean"
     ? ok<boolean>(a as boolean)
     : err(`expected boolean, got ${typeof a}`)
 );
 
-export const nullDecoder: Decoder<null> = decoder((a: unknown) =>
+export const nullDecoder: Decoder<null> = decoder((a) =>
   a === null ? ok<null>(null) : err(`expected null, got ${typeof a}`)
 );
 
-export const undefinedDecoder: Decoder<undefined> = decoder((a: unknown) =>
+export const undefinedDecoder: Decoder<undefined> = decoder((a) =>
   a === undefined
     ? ok<undefined>(undefined)
     : err(`expected undefined, got ${typeof a}`)
 );
 
 export const arrayDecoder = <T>(itemDecoder: Decoder<T>): ArrayDecoder<T> =>
-  decoder((a: unknown) => {
+  decoder((a) => {
     if (Array.isArray(a)) {
       const res: T[] = [];
       for (const [index, item] of a.entries()) {
@@ -133,12 +128,7 @@ export const oneOfDecoders = <T>(
   decoder((a: unknown) => {
     for (const decoderTry of decoders) {
       const result = decoderTry.decode(a);
-      switch (result.type) {
-        case OK:
-          return ok(result.value);
-        case ERR:
-          continue;
-      }
+      if (result.type === OK) return ok(result.value);
     }
     return err(`one of: none of decoders match`);
   }) as ArrayType<typeof decoders>;
@@ -159,14 +149,10 @@ export const allOfDecoders = <
 ): Decoder<R> =>
   decoder((a: unknown) => {
     return decoders.reduce(
-      (result: Result<R>, decoderNext: Decoder<unknown>) => {
-        switch (result.type) {
-          case OK:
-            return decoderNext.decode(result.value) as Result<R>;
-          default:
-            return err<R>(result.message);
-        }
-      },
+      (result: Result<R>, decoderNext: Decoder<unknown>) =>
+        result.type === OK
+          ? (decoderNext.decode(result.value) as Result<R>)
+          : err<R>(result.message),
       ok<R>(a as R)
     );
   });
