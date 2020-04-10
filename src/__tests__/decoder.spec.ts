@@ -14,6 +14,7 @@ import {
   Ok,
   valueDecoder,
   undefinedDecoder,
+  exactDecoder,
 } from "../decoder";
 
 test("string decoder", async () => {
@@ -136,6 +137,12 @@ test("any decoder", async () => {
   const val: unknown = { name: "peter", age: 26 };
   const result = await anyDecoder.decodeAsync(val);
   expect(result).toStrictEqual(val);
+});
+
+test("exact decoder", async () => {
+  const val: "EXACT-VALUE" = "EXACT-VALUE";
+  const result = await exactDecoder(val).decodeAsync(val);
+  expect(result).toEqual(val);
 });
 
 test("mapping Ok result", async () => {
