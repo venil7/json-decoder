@@ -12,7 +12,9 @@ import {
   Err,
   OK,
   Ok,
-  valueDecoder
+  valueDecoder,
+  undefinedDecoder,
+  exactDecoder,
 } from "../decoder";
 
 test("string decoder", async () => {
@@ -40,14 +42,15 @@ test("null decoder", async () => {
 });
 
 test("undefined decoder", async () => {
-  const val: null = null;
-  const result = await nullDecoder.decodeAsync(val);
+  const val: undefined = undefined;
+  const result = await undefinedDecoder.decodeAsync(val);
   expect(result).toBe(val);
 });
 
 test("map decoder", async () => {
   const val = "12";
-  const result = await stringDecoder.map(parseInt).decodeAsync(val);
+  const stringToNumberDecoder = stringDecoder.map(parseInt);
+  const result = await stringToNumberDecoder.decodeAsync(val);
   expect(result).toBe(12);
 });
 
@@ -64,14 +67,14 @@ test("all of decoders", async () => {
   const val = "12.0";
   const result = await allOfDecoders(
     stringDecoder.map(parseFloat),
-    numberDecoder.map(x => x * 2)
+    numberDecoder.map((x) => x * 2)
   ).decodeAsync(val);
   expect(result).toBe(24.0);
 });
 
 test("failing map returns Err", async () => {
   const val = "cat";
-  const decoder = stringDecoder.map(x => {
+  const decoder = stringDecoder.map((x) => {
     throw new Error("mapping fault");
     return "hello"; // this is ti satisfy type inference
   });
@@ -89,6 +92,18 @@ test("failing validation returns Err", async () => {
   expect((result as Err<string>).message).toBe("not a cat");
 });
 
+test("failing validation with functional explanation returns Err", async () => {
+  const val = "dog";
+  const validate = (s: string) => s === "cat";
+  const decoder = stringDecoder.validate(
+    validate,
+    (value) => value + " not a cat"
+  );
+  const result = decoder.decode(val);
+  expect(result.type).toBe(ERR);
+  expect((result as Err<string>).message).toBe("dog not a cat");
+});
+
 test("succesfull validation returns Ok", async () => {
   const val = 123;
   const isInteger = (n: number) => Math.floor(n) === n;
@@ -102,7 +117,7 @@ test("object decoder (success)", async () => {
   const val: unknown = { name: "peter", age: 26 };
   const testDecoder = objectDecoder<Person>({
     name: stringDecoder,
-    age: numberDecoder
+    age: numberDecoder,
   });
   const result = await testDecoder.decodeAsync(val);
   expect(result).toStrictEqual(val as Person);
@@ -111,7 +126,7 @@ test("object decoder (success)", async () => {
 test("object decoder (null)", async () => {
   const testDecoder = objectDecoder({
     name: stringDecoder,
-    age: numberDecoder
+    age: numberDecoder,
   });
   const result = testDecoder.decode(null);
   expect((result as Err<null>).message).toEqual("expected object, got null");
@@ -124,10 +139,16 @@ test("any decoder", async () => {
   expect(result).toStrictEqual(val);
 });
 
+test("exact decoder", async () => {
+  const val: "EXACT-VALUE" = "EXACT-VALUE";
+  const result = await exactDecoder(val).decodeAsync(val);
+  expect(result).toEqual(val);
+});
+
 test("mapping Ok result", async () => {
   const val: string = "cat";
   const result_: Result<string> = stringDecoder.decode(val);
-  const result = result_.map(x => x.toUpperCase());
+  const result = result_.map((x) => x.toUpperCase());
   expect(result.type).toBe(OK);
   expect((result as Ok<string>).value).toBe("CAT");
 });
@@ -135,7 +156,7 @@ test("mapping Ok result", async () => {
 test("mapping Err result", async () => {
   const val = 123;
   const result_ = stringDecoder.decode(val);
-  const result = result_.map(x => x.toUpperCase());
+  const result = result_.map((x) => x.toUpperCase());
   expect(result.type).toBe(ERR);
   expect((result as Err<string>).message).toBe("expected string, got number");
 });
