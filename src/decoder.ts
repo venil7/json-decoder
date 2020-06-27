@@ -33,6 +33,7 @@ export type Decoder<T> = {
   decode: (a: unknown) => Result<T>;
   decodeAsync: (a: unknown) => Promise<T>;
   map: <T2>(func: (t: T) => T2) => Decoder<T2>;
+  bind: <T2>(func: (t: T) => Decoder<T2>) => Decoder<T2>;
   then: <T2>(nextDecoder: Decoder<T2>) => Decoder<T2>;
   validate: (
     func: (t: T) => boolean,
@@ -58,6 +59,18 @@ export const decoder = <T>(decode: (a: unknown) => Result<T>): Decoder<T> => ({
     }),
   map: <T2>(func: (t: T) => T2): Decoder<T2> =>
     decoder<T2>((b: unknown) => decode(b).map(func)),
+  bind: <T2>(getNextDecoder: (t: T) => Decoder<T2>): Decoder<T2> => {
+    return decoder<T2>((a) => {
+      const res = decode(a);
+      switch (res.type) {
+        case OK:
+          const nextDecoder = getNextDecoder(res.value);
+          return nextDecoder.decode(res.value);
+        case ERR:
+          return err(res.message);
+      }
+    });
+  },
   then: <T2>(nextDecoder: Decoder<T2>): Decoder<T2> =>
     allOfDecoders(decoder(decode), nextDecoder),
   validate: (func, errMessage = "validation failed"): Decoder<T> =>

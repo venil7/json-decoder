@@ -76,7 +76,7 @@ test("failing map returns Err", async () => {
   const val = "cat";
   const decoder = stringDecoder.map((x) => {
     throw new Error("mapping fault");
-    return "hello"; // this is ti satisfy type inference
+    return "hello"; // this is to satisfy type inference
   });
   const result = decoder.decode(val);
   expect(result.type).toBe(ERR);
@@ -166,4 +166,37 @@ test("value decoder", async () => {
   const value = "donalnd duck";
   const result = await valueDecoder(value).decodeAsync(val);
   expect(result).toStrictEqual(value);
+});
+
+test(".then combine", async () => {
+  const val: unknown = "12";
+  const decoder = stringDecoder
+    .then(stringDecoder.map(parseFloat))
+    .then(numberDecoder.map((x) => x * 2));
+  const result = await decoder.decodeAsync(val);
+  expect(result).toStrictEqual(24);
+});
+
+test(".bind combine", async () => {
+  const val: unknown = "12.0";
+  const decoder = stringDecoder
+    .bind((s: string) => stringDecoder.map(parseFloat))
+    .bind((n: Number) => numberDecoder.map((x) => x * 2));
+  const result = await decoder.decodeAsync(val);
+  expect(result).toStrictEqual(24);
+});
+
+test(".bind conditional decoding", async () => {
+  const decoder = oneOfDecoders<string | number>(
+    stringDecoder,
+    numberDecoder
+  ).bind<string | number>((t: string | number) =>
+    typeof t == "string"
+      ? stringDecoder.map((s) => `${s}!!`)
+      : numberDecoder.map((n) => n * 2)
+  );
+  const resultString = await decoder.decodeAsync("hello");
+  const resultNumber = await decoder.decodeAsync(12);
+  expect(resultString).toStrictEqual("hello!!");
+  expect(resultNumber).toStrictEqual(24);
 });

@@ -1,6 +1,6 @@
 # TypeScript JSON Decoder: `json-decoder`
 
-**`json-decoder`** is a type safe compositional JSON decoder for `TypeScript`. It is heavily inspired by [Elm](https://package.elm-lang.org/packages/elm/json/latest/) and [ReasonML](https://github.com/glennsl/bs-json) JSON decoders. The code is loosely based on [ts.data.json](https://github.com/joanllenas/ts.data.json) but is a full rewrite, and does not rely on unsafe `any` type.
+**`json-decoder`** is a type safe compositional JSON decoder for `TypeScript`. It is heavily inspired by [Elm](https://package.elm-lang.org/packages/elm/json/latest/) and [ReasonML](https://github.com/glennsl/bs-json) JSON decoders. The code is loosely based on [aische/JsonDecoder](https://github.com/aische/JsonDecoder) but is a full rewrite, and does not rely on unsafe `any` type.
 
 [![Build Status](https://travis-ci.org/venil7/json-decoder.svg?branch=master)](https://travis-ci.org/venil7/json-decoder) [![TypeScript](https://badges.frapsoft.com/typescript/code/typescript.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
 
@@ -145,9 +145,19 @@ Each decoder has the following methods:
 
 - `map(func: (t: T) => T2): Decoder<T2>` - each decoder is a [functor](https://wiki.haskell.org/Functor). `Map` allows you to apply a function to an underlying decoder value, provided that decoding succeeded. Map accepts a function of type `(t: T) -> T2`, where `T` is a type of decoder (and underlying value), and `T2` is a type of resulting decoder.
 
-- `then(bindFunc: (t: T) => Decoder<T2>): Decoder<T2>` - allows for [monadic](https://wiki.haskell.org/Monad) chaining of decoders. Takes a function, that returns a `Decoder<T2>`, and returns a `Decoder<T2>`
+- `bind<T2>(bindFunc: (t: T) => Decoder<T2>): Decoder<T2>` - allows for [monadic](https://wiki.haskell.org/Monad) (think >>=) chaining of decoders. Takes a function, that given a result of previous decoding return a new decoder of type `Decoder<T2>`.
 
-### Custom decoder
+- `then<T2>(nextDecoder: Decoder<T2>): Decoder<T2>` - allows to chain several decoders one after the other, is an equivalent of calling `allOfDecoders(thisDecoder, nextDecoder)`
+
+## Custom decoder
+
+Customized decoders are possible by combining existing decoders with user defined mapping. For example to create a `floatDecoder` that decodes valid string:
+
+```TypeScript
+const floatDecoder = stringDecoder.map(parseFloat);
+const float = floatDecoder.decode("123.45"); //Ok(123.45)
+
+```
 
 ## Result and pattern matching
 
@@ -176,11 +186,23 @@ switch (result.type) {
 
 ## Friendly errors
 
-TBC
+Errors emit exact decoder expectations where decoding whent wrong, even for deeply nested objects and arrays
 
 ## Mapping and type conversion
 
-TBC
+- **simple type converson** - is possible with `.map` and chaining decoder, see `floatDecoder` as an example
+- **more comlex conditional** decoding is possible using `.bind` to chain decoders one after the other, with user defined arbitrary combination logic. The following example executes different decoder depending on the result of previous decoder.
+
+```TypeScript
+  const decoder = oneOfDecoders<string | number>(
+      stringDecoder,
+      numberDecoder
+    ).bind<string | number>((t: string | number) =>
+      typeof t == "string"
+        ? stringDecoder.map((s) => `${s}!!`)
+        : numberDecoder.map((n) => n * 2)
+    );
+```
 
 ## Validation
 
