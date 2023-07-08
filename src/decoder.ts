@@ -148,11 +148,8 @@ export const oneOfDecoders = <T>(
 
 type LastElem<T extends number> = [-1, 0, 1, 2, 3, 4, 5][T];
 type LastElemType<T extends unknown[]> = T[LastElem<T["length"]>];
-type LastDecoder<T extends Decoder<unknown>[]> = LastElemType<
-  T
-> extends Decoder<infer R>
-  ? R
-  : T[0];
+type LastDecoder<T extends Decoder<unknown>[]> =
+  LastElemType<T> extends Decoder<infer R> ? R : T[0];
 
 export const allOfDecoders = <
   TDecoders extends Decoder<unknown>[],
@@ -181,14 +178,14 @@ export const objectDecoder = <T>(decoderMap: DecoderMap<T>): Decoder<T> =>
       const keys = Object.keys(decoderMap) as (keyof T)[];
       const res: Partial<T> = {};
       for (const key of keys) {
-        const fieldResult = decoderMap[key].decode(((a as unknown) as T)[key]);
+        const fieldResult = decoderMap[key].decode((a as unknown as T)[key]);
         switch (fieldResult.type) {
           case OK: {
             res[key] = fieldResult.value;
             continue;
           }
           case ERR:
-            return err(`${key}: ${fieldResult.message}`);
+            return err(`${String(key)}: ${fieldResult.message}`);
         }
       }
       return ok(res as T);

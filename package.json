@@ -1,6 +1,6 @@
 {
   "name": "json-decoder",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Lightweight, lightning-fast, type safe JSON decoder for TypeScript",
   "main": "dist/decoder.js",
   "typings": "dist/decoder.d.ts",
@@ -29,11 +29,10 @@
   },
   "homepage": "https://github.com/venil7/json-decoder#readme",
   "devDependencies": {
-    "@types/jest": "^24.0.15",
-    "jest": "^24.8.0",
-    "ts-jest": "^24.0.2",
-    "tslib": "^1.10.0",
-    "typescript": "^3.9.5"
-  },
-  "dependencies": {}
+    "@types/jest": "^29.5.2",
+    "jest": "^29.6.1",
+    "ts-jest": "^29.1.1",
+    "tslib": "^2.6.0",
+    "typescript": "^5.1.6"
+  }
 }
